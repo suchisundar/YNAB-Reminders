@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Edit Category</h1>
+<p>Set the budget for each category. If you would like to receive a text message when your balance is low, set a threshold. If your balance falls below this amount, you will receive a notification.
+<br></p>
+
+    <form method="post">
+    <div class="form-group">
+        <label for="budgeted">Budgeted Amount:</label>
+        <input type="number" id="budgeted" name="budgeted" step="0.01" value="{{ budgeted }}">
+    </div>
+    <div class="form-group">
+        <label for="threshold">Threshold Amount:</label>
+        <input type="number" id="threshold" name="threshold" step="0.01" value="{{ threshold }}">
+    </div>
+    <button type="submit">Save</button>
+</form>
+{% endblock %}

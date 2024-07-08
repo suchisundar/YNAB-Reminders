@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Budget Categories</h1>
+{% for group in categories %}
+    <h2>{{ group.name }}</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Category</th>
+                <th>Assigned</th>
+                <th>Activity</th>
+                <th>Available</th>
+                <th>Threshold</th>
+                <th><i class="fas fa-pencil-alt"></i></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for category in group.categories %}
+                {% set balance = category.balance / 1000 %}
+                {% set threshold = category_thresholds[category.id] %}
+                {% set threshold_float = threshold if threshold == 'N/A' else threshold | float %}
+                {% set within_50 = balance - threshold_float <= 50 if threshold_float != 'N/A' else false %}
+                <tr>
+                    <td>{{ category.name }}</td>
+                    <td>${{ '%.2f' | format(category.budgeted / 1000) }}</td>
+                    <td>${{ '%.2f' | format(category.activity / 1000) }}</td>
+                    <td class="{% if threshold_float != 'N/A' and balance < threshold_float %}bg-danger{% elif within_50 %}bg-warning{% elif threshold != 'N/A' %}bg-success{% endif %}">
+                        ${{ '%.2f' | format(balance) }}
+                    </td>
+                    <td>
+                        {% if threshold == 'N/A' %}
+                            N/A
+                        {% else %}
+                            ${{ '%.2f' | format(threshold_float) }}
+                        {% endif %}
+                    </td>
+                    <td><a href="{{ url_for('edit_category', category_id=category.id) }}"><i class="fas fa-pencil-alt"></i></a></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endfor %}
+{% endblock %}

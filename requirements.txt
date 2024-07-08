@@ -1,0 +1,9 @@
+Flask==2.0.3
+Flask-WTF==0.15.1
+WTForms==2.3.3
+Flask-SQLAlchemy==2.5.1
+requests==2.25.1
+python-dotenv==1.0.1
+twilio==7.3.0
+Werkzeug==2.0.3
+SQLAlchemy==1.4.25

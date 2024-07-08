@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Enter Transaction</h1>
+<form method="POST" action="{{ url_for('transactions') }}">
+    {{ transaction_form.hidden_tag() }}
+    <div class="form-group">
+        {{ transaction_form.payee_name.label }}<br>
+        {{ transaction_form.payee_name(size=32) }}<br>
+    </div>
+    <div class="form-group">
+        {{ transaction_form.amount.label }}<br>
+        {{ transaction_form.amount(size=32) }}<br>
+    </div>
+    <div class="form-group">
+        {{ transaction_form.category_id.label }}<br>
+        {{ transaction_form.category_id() }}<br>
+    </div>
+    <div class="form-group">
+        {{ transaction_form.memo.label }}<br>
+        {{ transaction_form.memo(size=32) }}<br>
+    </div>
+    <div class="form-group">
+        {{ transaction_form.date.label }}<br>
+        {{ transaction_form.date() }}<br>
+    </div>
+    <div class="form-group">
+        <button type="submit">Submit</button>
+    </div>
+</form>
+{% endblock %}
+
