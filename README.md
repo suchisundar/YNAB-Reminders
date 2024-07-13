@@ -26,3 +26,5 @@ HTML/CSS: For structuring and styling the web pages.
 
 Future Work:
 To obtain the most value out of the texting feature, this app should be used with the YNAB banking integration so that transactions are recorded with more timeliness and accuracy. For travelers or those who otherwise don't have consistent internet access, this application provides an intuitive, structured, and visual solution to manage a budget.
+
+View the deployed app at: https://shes-got-money-11438ac3dc54.herokuapp.com/
