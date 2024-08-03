@@ -1,6 +1,6 @@
-Show Me the Money
+Manage My Budget
 
-Show Me the Money is a web application that integrates with the You Need A Budget (YNAB) API to help users manage and track their budgets and save for financial goals. The application allows users to set budget categories, log transactions, and receive SMS alerts through the Twilio API when their budget categories are running low.
+Manage My Budget is a web application that integrates with the You Need A Budget (YNAB) API to help users manage and track their budgets and save for financial goals. The application allows users to set budget categories, log transactions, and receive SMS alerts through the Twilio API when their budget categories are running low.
 
 Features
 Spending category warnings: View color coded warnings on the dashboard, receive warnings when transactions are created in categories that are low on funds.
@@ -27,4 +27,4 @@ HTML/CSS: For structuring and styling the web pages.
 Future Work:
 To obtain the most value out of the texting feature, this app should be used with the YNAB banking integration so that transactions are recorded with more timeliness and accuracy. For travelers or those who otherwise don't have consistent internet access, this application provides an intuitive, structured, and visual solution to manage a budget.
 
-View the deployed app at: https://shes-got-money-11438ac3dc54.herokuapp.com/
+

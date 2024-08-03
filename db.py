@@ -16,3 +16,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Create the SQLAlchemy db instance
 db = SQLAlchemy(app)
+
+# Ensure tables are created
+with app.app_context():
+    db.create_all()

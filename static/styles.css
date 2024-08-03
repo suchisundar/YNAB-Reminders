@@ -10,6 +10,8 @@ nav {
     color: white;
     padding: 1em;
     text-align: center;
+    display: flex;
+    align-items: center;
 }
 
 nav a {
@@ -17,6 +19,17 @@ nav a {
     margin: 0 15px;
     text-decoration: none;
 }
+
+
+nav .centered {
+    flex-grow: 1;
+    text-align: center;
+}
+
+nav .right {
+    text-align: right;
+}
+
 
 nav a:hover {
     text-decoration: underline;
@@ -67,7 +80,7 @@ input, select, button {
     width: 100%;
     padding: 10px;
     margin-top: 5px;
-    box-sizing: border-box; /* Ensures padding is included in width */
+    box-sizing: border-box; 
 }
 
 button {
