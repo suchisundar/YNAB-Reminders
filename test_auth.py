@@ -5,12 +5,13 @@ from models import User
 def test_register(client):
     response = client.post('/register', data=dict(
         username='testuser',
-        password='testpassword'
+        password='testpassword',
+        email='testuser@example.com'
     ), follow_redirects=True)
     assert b'Registration successful!' in response.data
 
 def test_login(client, init_database):
-    user = User(username='testuser')
+    user = User(username='testuser', email='testuser@example.com')
     user.set_password('testpassword')
     db.session.add(user)
     db.session.commit()
@@ -22,7 +23,7 @@ def test_login(client, init_database):
     assert b'Login successful!' in response.data
 
 def test_logout(client, init_database):
-    user = User(username='testuser')
+    user = User(username='testuser', email='testuser@example.com')
     user.set_password('testpassword')
     db.session.add(user)
     db.session.commit()

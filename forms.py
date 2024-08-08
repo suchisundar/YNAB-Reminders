@@ -1,6 +1,12 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, FloatField, SelectField, DateField, SubmitField
-from wtforms.validators import DataRequired, NumberRange
+from wtforms import StringField, PasswordField, FloatField, SelectField, DateField, SubmitField
+from wtforms.validators import DataRequired, NumberRange, Email
+
+class RegistrationForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    submit = SubmitField('Sign Up')
 
 class BudgetForm(FlaskForm):
     name = StringField('Name', validators=[DataRequired()])

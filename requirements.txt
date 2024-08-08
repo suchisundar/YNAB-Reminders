@@ -12,3 +12,5 @@ SQLAlchemy==1.4.25
 gunicorn==20.1.0
 flask_login==0.6.2
 flask-bootstrap==3.3.7.1
+email_validator
+flask_migrate

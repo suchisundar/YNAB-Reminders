@@ -10,16 +10,23 @@
                 <th>Category</th>
                 <th>Memo</th>
                 <th>Date</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
             {% for transaction in transactions %}
                 <tr>
                     <td>{{ transaction.payee_name }}</td>
-                    <td>{{ transaction.amount }}</td>
-                    <td>{{ transaction.category_id }}</td>
+                    <td>{{ transaction.amount / 1000 }}</td>
+                    <td>{{ transaction.category_name }}</td>
                     <td>{{ transaction.memo }}</td>
                     <td>{{ transaction.date }}</td>
+                    <td>
+                        <a href="{{ url_for('edit_transaction', transaction_id=transaction.transaction_id) }}"><i class="fas fa-pencil-alt"></i></a>
+                        <form action="{{ url_for('delete_transaction', transaction_id=transaction.transaction_id) }}" method="POST" style="display:inline;">
+                            <button type="submit" style="border:none;background:none;color:red;"><i class="fas fa-trash"></i></button>
+                        </form>
+                    </td>
                 </tr>
             {% endfor %}
         </tbody>

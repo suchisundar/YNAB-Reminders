@@ -8,7 +8,9 @@ import requests
 from datetime import datetime
 from forms import BudgetForm, TransactionForm
 from twilio.rest import Client
-from models import db, User, BudgetCategory, Transaction 
+from models import db, User, BudgetCategory, Transaction, connect_db
+from flask_migrate import Migrate
+
 
 
 # Load environment variables from .env file
@@ -19,41 +21,25 @@ app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY')
 
 # Configure the SQLAlchemy part of the application instance
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ynab.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+app.config['SQLALCHEMY_BINDS'] = {
+    'ynab': 'sqlite:///ynab.db'
+}
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize extensions
-db = SQLAlchemy(app)
+connect_db(app)
+migrate = Migrate(app, db)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
+
 
 # Define user loader for Flask-Login
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# Define User model
-class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    password = db.Column(db.String(200), nullable=False)
-
-# Define BudgetCategory model
-class BudgetCategory(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    category_id = db.Column(db.String(80), unique=True, nullable=False)
-    amount = db.Column(db.Float, nullable=False)
-    threshold = db.Column(db.Float, nullable=False)
-
-# Define Transaction model
-class Transaction(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    payee_name = db.Column(db.String(80), nullable=False)
-    amount = db.Column(db.Float, nullable=False)
-    category_id = db.Column(db.String(80), nullable=False)
-    memo = db.Column(db.String(200))
-    date = db.Column(db.Date, nullable=False, default=datetime.utcnow)
 
 # Create tables if they do not exist
 with app.app_context():
@@ -71,6 +57,7 @@ TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER')
 USER_PHONE_NUMBER = os.getenv('USER_PHONE_NUMBER')
 
 client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+
 
 # Function to send a text/WhatsApp message using Twilio
 def send_text_message(message):
@@ -137,6 +124,7 @@ def create_transaction(payee_name, amount, category_id, memo, date):
     if response.status_code != 201:
         print("Response status code:", response.status_code)
         print("Response text:", response.text)
+
 
     response.raise_for_status()
     return response.json()
@@ -218,7 +206,6 @@ def edit_category(category_id):
 
 # Route to manage transactions
 @app.route('/transactions', methods=['GET', 'POST'])
-@login_required
 def transactions():
     categories = get_categories()
     transaction_form = TransactionForm()
@@ -242,7 +229,7 @@ def transactions():
         else:
             try:
                 create_transaction(payee_name, amount, category_id, memo, date)
-                print(f"Transaction created: {payee_name, amount, category_id, memo, date}")
+                print(f"Transaction created: {payee_name}, {amount}, {category_id}, {memo}, {date}")
 
                 # Directly compare the balance after transaction
                 new_balance = balance - amount
@@ -261,45 +248,75 @@ def transactions():
 
         return redirect(url_for('transactions'))
 
-    return render_template('transactions.html', categories=categories, transaction_form=transaction_form, transactions=transactions)
+    return render_template('transactions.html', transaction_form=transaction_form, transactions=transactions)
+
 
 # Route to edit a transaction
-@app.route('/edit_transaction/<int:transaction_id>', methods=['GET', 'POST'])
+@app.route('/edit_transaction/<string:transaction_id>', methods=['GET', 'POST'])
 @login_required
 def edit_transaction(transaction_id):
-    transaction = Transaction.query.get_or_404(transaction_id)
-    categories = get_categories()
+    transaction = Transaction.query.filter_by(transaction_id=transaction_id).first_or_404()
+    categories = get_categories()  # Assuming get_categories is imported from ynab_api.py
     if request.method == 'POST':
         transaction.payee_name = request.form['payee_name']
-        transaction.amount = float(request.form['amount'])
+        transaction.amount = float(request.form['amount']) * 1000  # Ensure the amount is in the correct format
         transaction.category_id = request.form['category_id']
         transaction.memo = request.form['memo']
         transaction.date = datetime.strptime(request.form['date'], '%Y-%m-%d')
 
         db.session.commit()
         flash('Transaction updated successfully!', 'success')
-        return redirect(url_for('transactions'))
+        return redirect(url_for('transaction_history'))
 
     return render_template('edit_transaction.html', transaction=transaction, categories=categories)
 
+# Function to get transactions from YNAB
+def get_transactions():
+    url = f"{BASE_URL}/transactions"
+    response = requests.get(url, headers=HEADERS)
+    response.raise_for_status()
+    data = response.json()
+    return data['data']['transactions']
+
+# Function to get a dictionary of category IDs to category names
+def get_category_dict():
+    categories = get_categories()
+    category_dict = {}
+    for group in categories:
+        for category in group['categories']:
+            category_dict[category['id']] = category['name']
+    return category_dict
+
+# Function to delete a transaction in YNAB
+def delete_ynab_transaction(transaction_id):
+    url = f"{BASE_URL}/transactions/{transaction_id}"
+    response = requests.delete(url, headers=HEADERS)
+    response.raise_for_status()
+    return response.status_code == 204
+
 # Route to delete a transaction
-@app.route('/delete_transaction/<int:transaction_id>', methods=['POST'])
+@app.route('/delete_transaction/<string:transaction_id>', methods=['POST'])
 @login_required
 def delete_transaction(transaction_id):
-    transaction = Transaction.query.get_or_404(transaction_id)
-    db.session.delete(transaction)
-    db.session.commit()
-    flash('Transaction deleted successfully!', 'success')
-    return redirect(url_for('transactions'))
+    transaction = Transaction.query.filter_by(transaction_id=transaction_id).first_or_404()
+    try:
+        delete_ynab_transaction(transaction_id)  # Assuming delete_ynab_transaction is imported from ynab_api.py
+        db.session.delete(transaction)
+        db.session.commit()
+        flash('Transaction deleted successfully!', 'success')
+    except requests.exceptions.HTTPError as err:
+        flash(f'Error deleting transaction: {err}', 'error')
+    return redirect(url_for('transaction_history'))
 
 # Registration route
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         username = request.form['username']
+        email = request.form['email']
         password = request.form['password']
         hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-        new_user = User(username=username, password=hashed_password)
+        new_user = User(username=username, email=email, password=hashed_password)
         db.session.add(new_user)
         db.session.commit()
         flash('Registration successful! You can now log in.', 'success')
@@ -321,7 +338,6 @@ def login():
             flash('Login unsuccessful. Please check your username and password.', 'danger')
     return render_template('login.html')
 
-# TODO: hash password, then check username and hashed pw version
 
 # Logout route
 @app.route('/logout')
@@ -331,12 +347,15 @@ def logout():
     flash('You have been logged out.', 'success')
     return redirect(url_for('login'))
 
-# Route to display transaction history
 @app.route('/transaction_history', methods=['GET'])
 @login_required
 def transaction_history():
-    transactions = Transaction.query.all()
+    transactions = get_transactions()
+    category_dict = get_category_dict()
+    for transaction in transactions:
+        transaction['category_name'] = category_dict.get(transaction['category_id'], 'Unknown')
     return render_template('transaction_history.html', transactions=transactions)
+
 
 if __name__ == "__main__":
     app.run(debug=True)

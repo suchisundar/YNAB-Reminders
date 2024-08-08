@@ -8,12 +8,11 @@ import os
 from datetime import datetime
 import pytest
 
-
 def test_transactions_access(client, init_database):
     response = client.get('/transactions')
     assert response.status_code == 302  # Redirect to login page for non-authenticated users
 
-    user = User(username='testuser')
+    user = User(username='testuser', email='testuser@example.com')
     user.set_password('testpassword')
     db.session.add(user)
     db.session.commit()
@@ -28,7 +27,7 @@ def test_transactions_access(client, init_database):
     assert b'Transactions' in response.data
 
 def test_add_transaction(client, init_database):
-    user = User(username='testuser')
+    user = User(username='testuser', email='testuser@example.com')
     user.set_password('testpassword')
     db.session.add(user)
     db.session.commit()
