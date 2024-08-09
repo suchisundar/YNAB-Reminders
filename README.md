@@ -6,6 +6,7 @@ Features
 Spending category warnings: View color coded warnings on the dashboard, receive warnings when transactions are created in categories that are low on funds.
 Budget Management: Set and manage budget amount and threshold for different categories.
 Transaction Logging: Log transactions with details such as payee name, amount, category, and memo.
+Transaction History: View individual transactions .
 SMS Alerts: Receive SMS alerts when the remaining budget for a category falls below a specified threshold.
 API Integration: Fetch categories and log transactions using the YNAB API.
 

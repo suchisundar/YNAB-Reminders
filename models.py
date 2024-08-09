@@ -35,6 +35,11 @@ class User(db.Model, UserMixin):
             return user
         return False
 
+    def set_password(self, password):
+        '''Set user's password to a new hashed password'''
+        self.password = bcrypt.generate_password_hash(password).decode('utf8')
+        db.session.commit()
+
 # Define BudgetCategory model
 class BudgetCategory(db.Model):
     '''Category in System'''
